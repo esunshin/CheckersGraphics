@@ -2,8 +2,9 @@
 Checkers game with OpenGL graphics
 
 Usage:
-make
+make \n
 ./checkersGraphics
 
-'p' to trigger computer move
-point/click to move your pieces
+'p' to trigger computer move \n
+point/click to move your pieces \n
+
