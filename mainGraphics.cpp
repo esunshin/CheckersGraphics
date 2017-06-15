@@ -32,7 +32,7 @@ GLint fillmode = 0;
 const int WINDOWSIZE = 500;
 const int OFFSET = 10;
 const float DEG2RAD = 3.14159/180;
-
+const float HEAVY = 2;
 
 //coordinates of last mouse click
 double mouse_x=-10, mouse_y=-10;
@@ -44,13 +44,16 @@ void mousepress(int button, int state, int x, int y);
 void timerfunc();
 void drawShape();
 void drawDot(int row, int col, int player);
+void drawDot(int row, int col, int player, float weight);
 void drawFilledDot(int row, int col, int player);
 void drawBoard(GameBoard theBoard);
+void drawBoard(GameBoard theBoard, int newX, int newY);
 
 //void drawShape(); // Draw something..
 
 void printPossMoves(vector< GameBoard > possibleMoves);
 int getZeroDepth(GameTreeNode theRoot);
+void printWidths(GameTreeNode theRoot);
 vector< GameTreeNode > isLegalStart(GameTreeNode theTree, int x, int y);
 int isLegalEnd(vector< GameTreeNode > theStarts, int x, int y);
 void printWithIndexes(GameBoard theBoard);
@@ -61,14 +64,16 @@ int getColFromClick(int clickX);
 int getRowFromClick(int clickY);
 int checkForWin(GameBoard theBoard);
 
-    
 bool isUsersMove = false;
 bool isPaused = true;
 bool hasGeneratedMerged = false;
+bool gameOver = false;
 
 GameTreeNode theGame;
 GameBoard mergedBoard;
 vector< GameBoard > nextMoves;
+vector< int > nextMovesRow;
+vector< int > nextMovesCol;
 
 int prevClickX = -1;
 int prevClickY = -1;
@@ -189,6 +194,7 @@ void mousepress(int button, int state, int x, int y) {
         if(isUsersMove and hasGeneratedMerged) {
             bool clickedNextMove = false;
             int i;
+            //COULD REPLACE W/ CHECK AGAINST A PREMADE VECT! ->Don't think this will be faster
             for(i = 0; i < nextMoves.size(); i++) {
                 if(nextMoves.at(i).getEndX() == col) {
                     if(nextMoves.at(i).getEndY() == row) {
@@ -233,7 +239,7 @@ void mousepress(int button, int state, int x, int y) {
             cout << 313 << endl;
             hasGeneratedMerged = true;
 //            isUsersMove = false;
-            isPaused = true;
+//            isPaused = true; //unpause to require 'p' for computer move!!!
 
         }
         
@@ -266,11 +272,12 @@ void reshape(GLsizei width, GLsizei height) {  // GLsizei for non-negative integ
 
 void timerfunc() {
     
-    if(!isUsersMove and !isPaused) {
+    if(!isUsersMove and !isPaused and !gameOver) {
         
         int winCheck = checkForWin(theGame.getCurrBoard());
         if(winCheck != 0) {
             cout << "GAME OVER!!!" << endl;
+            gameOver = true;
             if(winCheck == BLK)
                 cout << "Black won!" << endl;
             else if(winCheck == RED)
@@ -278,6 +285,9 @@ void timerfunc() {
             return;
             //exit(1);
         }
+        
+        prevClickX = -1;
+        prevClickY = -1;
         
         hasGeneratedMerged = false;
         
@@ -292,7 +302,9 @@ void timerfunc() {
         
         isUsersMove = !isUsersMove;
         
-        cout << "DEPTH: " << getZeroDepth(theGame) << endl;
+//        cout << "DEPTH: " << getZeroDepth(theGame) << endl;
+//        cout << "Widths: " << endl;
+//        printWidths(theGame);
         
         winCheck = checkForWin(theGame.getCurrBoard());
         if(winCheck != 0) {
@@ -381,6 +393,15 @@ void drawDot(int row, int col, int player) {
     
 }
 
+
+void drawDot(int row, int col, int player, float weight) {
+    glLineWidth(weight);
+    drawDot(row, col, player);
+    glLineWidth(1);
+    return;
+}
+
+
 void drawFilledDot(int row, int col, int player) {
     
     if(player == KRED)
@@ -439,7 +460,8 @@ int getRowFromClick(int clickY) {
 }
 
 void drawBoard(GameBoard theBoard) {
-    
+    drawBoard(theBoard, 0, 0);
+    return;
     for(int i = 0; i < DIMENSION; i++) {
         for(int j = 0; j < DIMENSION; j++) {
             
@@ -449,6 +471,23 @@ void drawBoard(GameBoard theBoard) {
         }
     }
     
+    
+}
+
+void drawBoard(GameBoard theBoard, int newX, int newY) {
+    newX = theBoard.getEndX();
+    newY = theBoard.getEndY();
+    for(int i = 0; i < DIMENSION; i++) {
+        for(int j = 0; j < DIMENSION; j++) {
+            
+            if(theBoard.getAt(i, j) == 0)
+                continue;
+            else if(j == newX and i == newY)
+                drawDot(i, j, theBoard.getAt(i, j), HEAVY);
+            else
+                drawDot(i, j, theBoard.getAt(i, j));
+        }
+    }
     
 }
 
@@ -527,6 +566,27 @@ int getZeroDepth(GameTreeNode theRoot) {
     
 }
 
+void printWidths(GameTreeNode theRoot) {
+    
+    if(theRoot.getNextMoves().size() == 0)
+        return;
+
+    cout << theRoot.getNextMoves().size() << endl;
+    
+    int maxWidthIndex = 0;
+    int maxWidth = theRoot.getNextMoves().at(maxWidthIndex).getNextMoves().size();
+    for(int i = 0; i < theRoot.getNextMoves().size(); i++) {
+        if(theRoot.getNextMoves().at(i).getNextMoves().size() > maxWidth) {
+            maxWidthIndex = i;
+            maxWidth = theRoot.getNextMoves().at(i).getNextMoves().size();
+        }
+    }
+
+    
+    printWidths(theRoot.getNextMove(maxWidthIndex));
+    
+}
+
 
 vector< GameTreeNode > isLegalStart(GameTreeNode theTree, int x, int y) {
     
@@ -595,23 +655,18 @@ void printWithIndexes(GameBoard theBoard) {
 }
 
 GameBoard mergeBoards(GameBoard currBoard, vector< GameBoard > theNextMoves) {
-    GameBoard merged = currBoard;
-    for (int row = 0; row < DIMENSION; row++) {
-        for (int col = 0; col < DIMENSION; col++) {
-            if(currBoard.getAt(row, col) == 0) {
-                for(int i = 0; i < theNextMoves.size(); i++) {
-                    if(theNextMoves.at(i).getAt(row, col) != 0) {
-                        int next = theNextMoves.at(i).getAt(row, col);
-                        merged.setAt(row, col, next*2);
-                        break;
-                    }
-                }
-            }
-        }
+    
+    //cout << "Next Moves Size: " << theNextMoves.size() << endl;
+    for(int i = 0; i < theNextMoves.size(); i++) {
+        int newRow = theNextMoves.at(i).getEndY();
+        int newCol = theNextMoves.at(i).getEndX();
+        //    cout << "newRow: " << newRow << "newCol: " << newCol;
+        int player = theNextMoves.at(i).getAt(newRow, newCol);
+        //!?!?
+        cout << " Player: " << player << endl;
+        currBoard.setAt(newRow, newCol, 2*player);
     }
-    
-    return merged;
-    
+    return currBoard;
     
 }
 
