@@ -33,6 +33,7 @@ const int WINDOWSIZE = 500;
 const int OFFSET = 10;
 const float DEG2RAD = 3.14159/180;
 const float HEAVY = 2;
+const int TREE_DEPTH = 3;
 
 //coordinates of last mouse click
 double mouse_x=-10, mouse_y=-10;
@@ -495,7 +496,7 @@ void drawBoard(GameBoard theBoard, int newX, int newY) {
 int main(int argc, char** argv) {
     
     
-    theGame.generateTreeLevel(5, BLK, true);
+    theGame.generateTreeLevel(TREE_DEPTH, BLK, true);
     isPaused = true;
     
     /* initialize GLUT  */

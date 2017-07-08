@@ -37,11 +37,12 @@ GameBoard::GameBoard() {
 
     score = 0;
     isJump = false;
-    
+    numJumps = 0;
     startX = -1;
     startY = -1;
     endX = -1;
     endY = -1;
+    
 }
 
 
@@ -76,9 +77,13 @@ bool GameBoard::equals(GameBoard theBoard) {
 }
 
 
+// THIS FUNCTION IS A BIG DEAL IN COMPUTER'S STRATEGY!!!
 // computes the "value" of a board, which is defined to
-// be the number of 1s in the array minus the number of
-// 2s in the array
+// be the sum of all of the live piece's values
+// ->   This means that the magnitude
+//      of the king's value (set by KRED, KBLK, & K_WEIGHT)
+//      is important!
+// Could also change method/math to make board scoring more complex!
 int GameBoard::getVal() {
     
     int theScore = 0;
@@ -101,16 +106,20 @@ void GameBoard::print() {
 	for (int row = 0; row < DIMENSION; row++) {
         cout << "|";
 		for (int col = 0; col < DIMENSION; col++) {
-            if(getAt(row, col) == RED) {
-//                system("Color 1A");
-                cout << "-|";
+//            if(getAt(row, col) == RED) {
+//                cout << "-|";
+//            }
+//            else if(getAt(row, col) == BLK)
+//                cout << "+|";
+//            else if(getAt(row, col) == KRED)
+//                cout << "=|";
+//            else if(getAt(row, col) == KBLK)
+//                cout << "*|";
+//            else
+//                cout << " |";
+            if(getAt(row, col) != MPT) {
+                cout << to_string(getAt(row,col)) + "|";
             }
-            else if(getAt(row, col) == BLK)
-                cout << "+|";
-            else if(getAt(row, col) == KRED)
-                cout << "=|";
-            else if(getAt(row, col) == KBLK)
-                cout << "*|";
             else
                 cout << " |";
 		}
@@ -199,13 +208,13 @@ vector<GameBoard> GameBoard::findNextMoves(int r, int c, int thePlayer) {
     if(player != thePlayer and player != K_WEIGHT*thePlayer) {
         cout << "Expected " << thePlayer << " , player at r,c " << player << endl;
         return theMoves;
-    }
+    } // safety check, but should be checked in wrapper (findNextMoves) fxn
     
     thePlayer = player;
     
     bool isKing = false;
     if(abs(thePlayer) == K_WEIGHT)
-        isKing = true;
+        isKing = true; // to determine movement ability
     
     bool foundJump = false;
     
@@ -215,17 +224,17 @@ vector<GameBoard> GameBoard::findNextMoves(int r, int c, int thePlayer) {
             
             int curr = 0;
             if(thePlayer != 0)
-                curr = thePlayer/abs(thePlayer);
+                curr = thePlayer/abs(thePlayer); //curr will be RED or BLK
             
-            if(!isKing and rDelt != curr)
+            if(!isKing and rDelt != curr) //if not king and trying to move backwards
                 continue;
             
             if(rDelt == 0 or cDelt == 0)
                 continue;
         
             GameBoard gB = *this;
-            gB.startX = c;  // IS THIS RIGHT???
-            gB.startY = r;  // IS THIS RIGHT???
+            gB.startX = c;  // IS THIS RIGHT??? -> seems like it..
+            gB.startY = r;  // IS THIS RIGHT??? -> seems like it..
         
             int newR = r + rDelt;
             int newC = c + cDelt;
@@ -244,17 +253,17 @@ vector<GameBoard> GameBoard::findNextMoves(int r, int c, int thePlayer) {
         
             if(newLoc == MPT and !foundJump) { //Move if you can, and you haven't found any jump moves yet
                 gB = *this;
-                gB.startX = c;  // IS THIS RIGHT???
-                gB.startY = r;  // IS THIS RIGHT???
+                gB.startX = c;  // IS THIS RIGHT??? -> seems like it..
+                gB.startY = r;  // IS THIS RIGHT??? -> seems like it..
                 gB.board.at(r).at(c) = MPT;
                 
-                if((curr == -1 and newR == 0) or (curr == 1 and newR == DIMENSION-1))
+                if((curr == -1 and newR == 0) or (curr == 1 and newR == DIMENSION-1)) //King if correct to do so
                     gB.board.at(newR).at(newC) = curr*K_WEIGHT;
                 else
                     gB.board.at(newR).at(newC) = thePlayer;
                 
-                gB.endX = newC;  // IS THIS RIGHT???
-                gB.endY = newR;  // IS THIS RIGHT???
+                gB.endX = newC;  // IS THIS RIGHT??? -> seems like it..
+                gB.endY = newR;  // IS THIS RIGHT??? -> seems like it..
                 
                 gB.score = gB.getVal();
                 gB.isJump = false;
@@ -315,6 +324,143 @@ vector<GameBoard> GameBoard::findNextMoves(int r, int c, int thePlayer) {
     return theMoves;
     
 }
+
+// Cleaner algo. attempting to make it recursive..
+/*
+vector<GameBoard> GameBoard::findJumps(int r, int c, int thePlayer) {
+   
+    vector<GameBoard> theMoves;
+    
+    int player = board.at(r).at(c);
+    if(player != thePlayer and player != K_WEIGHT*thePlayer) {
+        cout << "Expected " << thePlayer << " , player at r,c " << player << endl;
+        return theMoves;
+    }
+    
+    thePlayer = player;
+    
+    bool isKing = false;
+    if(abs(thePlayer) == K_WEIGHT)
+        isKing = true;
+    
+    for(int cDelt = -1; cDelt <= 1; cDelt++) {
+        for(int rDelt = -1; rDelt <= 1; rDelt++) {
+            
+            if(!isKing and rDelt != (thePlayer/abs(thePlayer)))
+                continue;
+            
+            if(rDelt == 0 or cDelt == 0)
+                continue;
+            
+            //        int rDelt = thePlayer;
+            
+            GameBoard gB = *this;
+            gB.startX = c;  // IS THIS RIGHT???
+            gB.startY = r;  // IS THIS RIGHT???
+            
+            int newR = r + rDelt;
+            int newC = c + cDelt;
+            
+            //        if(newR == 0 and newC == 0)
+            //            continue;
+            if(newR >= DIMENSION or newC >= DIMENSION)
+                continue;
+            if(newR < 0 or newC < 0)
+                continue;
+            
+            if(board.at(newR).at(newC) == thePlayer || board.at(newR).at(newC) == K_WEIGHT*thePlayer)
+                continue; // if next to a teammate
+            
+            if(board.at(newR).at(newC) == MPT)
+                continue; // if simple move
+            
+            int newRFar = newR + rDelt;
+            int newCFar = newC + cDelt;
+            
+            if(newRFar >= DIMENSION or newCFar >= DIMENSION)
+                continue;
+            if(newRFar < 0 or newCFar < 0)
+                continue;
+            
+            int curr = 0;
+            int newLoc = 0;
+            int newLocFar = 0;
+            
+            if(thePlayer != 0)
+                curr = thePlayer/abs(thePlayer);
+            if(getAt(newR, newC) != 0)
+                newLoc = getAt(newR, newC)/abs(getAt(newR, newC));
+            if(getAt(newRFar, newCFar) != 0)
+                newLocFar = getAt(newRFar, newCFar)/abs(getAt(newRFar, newCFar));
+            // curr, newLoc, and newLocFar == MPT, RED, or BLK
+            
+            if(newLoc == (-1)*curr and newLocFar == MPT) { //SIMPLE JUMP
+                gB = *this;
+                gB.startX = c;
+                gB.startY = r;
+                
+                gB.board.at(r).at(c) = MPT;
+                gB.board.at(newR).at(newC) = MPT;
+                
+                if((curr == -1 and newRFar == 0) or (curr == 1 and newRFar == DIMENSION-1))
+                    gB.board.at(newRFar).at(newCFar) = curr*K_WEIGHT;
+                else
+                    gB.board.at(newRFar).at(newCFar) = thePlayer;
+                //                gB.board.at(newR + rDelt).at(newC + cDelt) = thePlayer;
+                
+                gB.numJumps = gB.numJumps+1;
+                gB.endX = newCFar;
+                gB.endY = newRFar;
+                
+                gB.score = gB.getVal();
+                gB.isJump = true;
+                theMoves.push_back(gB);
+            }
+            
+        }
+    
+    }
+    
+    
+    
+    return theMoves;
+    
+}
+ */
+
+/*
+vector<GameBoard> GameBoard::findAllJumps(int r, int c, int thePlayer) {
+    vector<GameBoard> theMoves;
+    vector<GameBoard> theNextMoves;
+    vector<GameBoard> tempMoves;
+    bool done = false;
+    theMoves = findJumps(r, c, thePlayer);
+    
+    while(!done) {
+        done = true;
+        for(int i = 0; i < theMoves.size(); i++) {
+        
+            tempMoves = theMoves.at(i).findJumps(theMoves.at(i).endY, theMoves.at(i).endX, thePlayer);
+        
+        
+        //                    theMoves.insert(theMoves.end(), doubleJumps.begin(), doubleJumps.end()); // double jump(s)
+
+            if(tempMoves.size() > 0) {
+                theNextMoves.insert(theNextMoves.end(), tempMoves.begin(), tempMoves.end());
+                tempMoves.clear();
+            }
+        }
+    
+        if(theNextMoves.size() > 0) { //found a double/another jump
+            theMoves.clear();
+            theMoves = theNextMoves;
+            done = false;
+        }
+    }
+    return theMoves;
+    
+}
+ */
 
 vector<GameBoard> GameBoard::findJump(int r, int c, int thePlayer) {
     

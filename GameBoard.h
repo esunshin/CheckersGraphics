@@ -19,9 +19,9 @@
 
 #define BLK 1
 #define RED -1
-#define K_WEIGHT 5
-#define KBLK 5
-#define KRED -5
+#define K_WEIGHT 8
+#define KBLK 8
+#define KRED -8
 #define MPT 0
 
 using namespace std;
@@ -46,7 +46,9 @@ public:
     vector<GameBoard> findNextMoves(int player);
     vector<GameBoard> findNextMoves(int r, int c, int thePlayer);
     vector<GameBoard> findJump(int r, int c, int thePlayer);
-    
+    vector<GameBoard> findJumps(int r, int c, int thePlayer);
+    vector<GameBoard> findAllJumps(int r, int c, int thePlayer);
+
     bool getIsJump() { return isJump; }
     
     int getStartX() { return startX; }
@@ -62,7 +64,7 @@ private:
     vector< vector<int> > board;
     int score;
     bool isJump;
-    
+    int numJumps; // Just used for recursive jumping 
     int startX, startY;
     int endX, endY;
     
