@@ -1,8 +1,7 @@
 /* 
  * File:   GameBoard.cpp
- * Author: smajerci
+ * Author: esunshin
  * 
- * Created on November 18, 2014, 7:24 PM
  */
 
 #include <stdlib.h>
