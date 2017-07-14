@@ -180,11 +180,11 @@ void mousepress(int button, int state, int x, int y) {
 
         int col = getColFromClick(mouse_x);
         int row = getRowFromClick(mouse_y);
-        cout << "Col: " << col << endl;
-        cout << "Row: " << row << endl;
+//        cout << "Col: " << col << endl;
+//        cout << "Row: " << row << endl;
         
         if(col == prevClickX and row == prevClickY) {
-            cout << "same click (181)" << endl;
+//            cout << "same click (181)" << endl;
             return;
         }
         else {
@@ -201,7 +201,7 @@ void mousepress(int button, int state, int x, int y) {
                     if(nextMoves.at(i).getEndY() == row) {
                         clickedNextMove = true;
                         break;
-                        cout << "CLICKED NEXT MOVE" << endl;
+//                        cout << "CLICKED NEXT MOVE" << endl;
                     }
                 }
             }
@@ -222,7 +222,7 @@ void mousepress(int button, int state, int x, int y) {
             vector< GameTreeNode > startMoves = isLegalStart(theGame, col, row);
             
             if(startMoves.size() > 0)
-                cout << "Is Legal, size = " << startMoves.size() << endl;
+                cout << "Is Legal" << endl;
             else
                 cout << "Not Legal" << endl;
             
@@ -237,7 +237,7 @@ void mousepress(int button, int state, int x, int y) {
             cout << nextMoves.size() << endl;
             
             mergedBoard = mergeBoards(theGame.getCurrBoard(), nextMoves);
-            cout << 313 << endl;
+//            cout << 313 << endl;
             hasGeneratedMerged = true;
 //            isUsersMove = false;
 //            isPaused = true; //unpause to require 'p' for computer move!!!
@@ -297,7 +297,6 @@ void timerfunc() {
      
         theGame.print();
         
-        cout << 364 << endl;
         glFlush();
         glutPostRedisplay();
         
@@ -664,7 +663,7 @@ GameBoard mergeBoards(GameBoard currBoard, vector< GameBoard > theNextMoves) {
         //    cout << "newRow: " << newRow << "newCol: " << newCol;
         int player = theNextMoves.at(i).getAt(newRow, newCol);
         //!?!?
-        cout << " Player: " << player << endl;
+//        cout << " Player: " << player << endl;
         currBoard.setAt(newRow, newCol, 2*player);
     }
     return currBoard;

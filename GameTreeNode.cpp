@@ -1,8 +1,5 @@
 /* 
  * File:   GameBoard.cpp
- * Author: smajerci
- * 
- * Created on November 18, 2014, 7:24 PM
  */
 
 
@@ -137,6 +134,8 @@ GameTreeNode GameTreeNode::nextMove(int depth, int player) {
     
 }
 
+// this should return the 'best' next move in the tree for the 'player'
+// -> maximizes tree value for curr player
 GameTreeNode GameTreeNode::nextMove(int player) { //HERE!!!
     
     GameTreeNode theTree = *this;
@@ -144,7 +143,7 @@ GameTreeNode GameTreeNode::nextMove(int player) { //HERE!!!
     GameTreeNode maxNext = theTree.getNextMove(0);
     int maxNextScore = theTree.getNextMove(0).getScoreSum();
     
-    if(player == -1) {
+    if(player == RED) { //RED == -1
         for(int i = 0; i < theTree.getNextMoves().size(); i++) {
             int tmpScore = theTree.getNextMove(i).getScoreSum();
 
@@ -167,7 +166,7 @@ GameTreeNode GameTreeNode::nextMove(int player) { //HERE!!!
         }
     }
     return maxNext;
-
+    
 }
 
 bool GameTreeNode::equals(GameTreeNode otherGTN) {

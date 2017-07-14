@@ -1,9 +1,5 @@
 /* 
  * File:   GameBoard.h
- * Author: smajerci
- *
- * Created on November 18, 2014, 7:24 PM
- *
  *
  */
 

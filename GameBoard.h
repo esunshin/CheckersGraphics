@@ -1,9 +1,5 @@
  /*
  * File:   GameBoard.h
- * Author: smajerci
- *
- * Created on November 18, 2014, 7:24 PM
- *
  *
  */
 
@@ -19,9 +15,9 @@
 
 #define BLK 1
 #define RED -1
-#define K_WEIGHT 8
-#define KBLK 8
-#define KRED -8
+#define K_WEIGHT 5
+#define KBLK 5
+#define KRED -5
 #define MPT 0
 
 using namespace std;
